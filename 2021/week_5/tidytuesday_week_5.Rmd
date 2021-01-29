@@ -1,0 +1,88 @@
+---
+title: "Break Free From Plastic"
+author: "Anthony mora"
+date: "1/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+
+tuesdata <- tidytuesdayR::tt_load(2021, week = 5)
+plastics <- tuesdata$plastics
+```
+
+
+```{r}
+# Segmentando bases por año
+plastics %>% filter(year == "2020") -> plastics_2020
+plastics %>% filter(year == "2019") -> plastics_2019
+
+# Note plastic types variables
+plastic_type <- names(plastics)[4:11]
+# Plastic types without empty or other
+plastic_type_classed <- c("hdpe","ldpe","pet","pp","ps","pvc")
+
+
+
+plastics[c(plastic_type_classed,"year")] %>% 
+  pivot_longer(cols = -year) %>%
+  group_by(name, year) %>% 
+  summarise(value = sum(value, na.rm = TRUE), .groups = "keep") %>%
+  arrange(value) %>% 
+  mutate(name = factor(case_when(name == "empty" ~ "Not classified",
+                                 name == "hdpe" ~ "High density polyethylene",
+                                 name == "ldpe" ~ "Low density polyethylene",
+                                 name == "o" ~ "Other",
+                                 name == "pet" ~ "Polyester plastic (PET)",
+                                 name == "pp" ~ "Polypropylene",
+                                 name == "ps" ~ "Polystyrene",
+                                 name == "pvc" ~ "PVC"))) %>% 
+  ggplot(aes(name, value, fill = factor(year))) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(
+    title = "Type of plastic count by year",
+    caption = "Source: Break Free form Plastic's Brand Audit 2020, courtesy of Sarah Sauve \n  Author: Anthony Mora",
+    x="",
+    y="Count",
+    fill = "Year") 
+
+
+
+plastics[c(plastic_type_classed,"year")] %>% 
+  pivot_longer(-year, names_to = "type") %>% 
+  mutate(type = factor(case_when(
+    type == "hdpe" ~ "High density polyethylene",
+    type == "ldpe" ~ "Low density polyethylene",
+    type == "pet" ~ "Polyester plastic (PET)",
+    type == "pp" ~ "Polypropylene",
+    type == "ps" ~ "Polystyrene",
+    type == "pvc" ~ "PVC"),
+    levels = c("PVC",
+               "Polystyrene",
+               "High density polyethylene",
+               "Low density polyethylene",
+               "Polypropylene",
+               "Polyester plastic (PET)"))) %>% 
+  ggplot(aes(x = type, y = value, fill = as.factor(year))) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(
+    title = "Type of plastic count by year",
+    caption = "Source: Break Free form Plastic's Brand Audit 2020, courtesy of Sarah Sauve \n  Author: Anthony Mora",
+    x="",
+    y="Count",
+    fill = "Year")
+
+ggsave(
+  filename = "ttuesday_20210125.png",
+  device = "png",)
+```
+

@@ -1,0 +1,59 @@
+---
+title: "tidytuesday_week_6"
+author: "Anthony mora"
+date: "2/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggthemes)
+library(janitor)
+library(extrafont)
+
+# Loading data
+tuesday <- tidytuesdayR::tt_load(2021, week = 6)
+hbcu_all <- tuesday$hbcu_all
+```
+
+```{r}
+hbcu_all %>% 
+  clean_names() ->
+hbcu_all
+```
+
+
+```{r}
+hbcu_all %>% 
+  select(year, total_enrollment) %>% 
+  mutate(total = total_enrollment/1000) %>% 
+  filter(year >= 2010) %>% 
+  ggplot(aes(x = year, y = total)) +
+  geom_bar(stat = "identity", width = 0.5, fill = "#9fac9c", col = "#457373") +
+  geom_text(aes(label = round(total)),
+            vjust = -1,
+            col = "#457373",
+            family = "Verdana") +
+  labs(x = "",
+       title = "HBCU total enrollment, 2010 to 2015",
+       subtitle = "In thousands",
+       caption = "Source: Data.World \n  Author: Anthony Mora") +
+  annotate(geom = "text", label = "Total enrollment has \n decreased 11.6% from 2010 to 2015",x = 2013, y = 450, family = "Verdana", col = "#457373") +
+  annotate(geom = "rect", xmin = 2011, xmax = 2015, ymin = 400, ymax = 500, alpha = 0.2) +
+  scale_x_continuous(breaks = c(2010:2015)) +
+  ylim(0,500) +
+  theme_fivethirtyeight() +
+  theme(text = element_text(family = "Verdana",
+                            colour = "#457373"),
+        axis.text.y = element_blank(),
+        plot.subtitle = element_text(hjust = 0.1, size = 10),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+  
+```
+
+
